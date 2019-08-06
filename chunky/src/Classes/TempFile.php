@@ -4,90 +4,57 @@ namespace Shetabit\Chunky\Classes;
 
 use Shetabit\Chunky\Contracts\TempFileInterface;
 
-class TempFile implements TempFileInterface
+class TempFile extends File implements TempFileInterface
 {
-    protected $path;
-    protected $handle;
-
-    public function __construct($path = null, $data = null)
+    /**
+     * Create (or overwrite) new temp file
+     *
+     * @param $data
+     * @return $this
+     */
+    public function create($data)
     {
-        $this->setPath($path);
+        $handler = $this->openTemporary();
 
-        if($data) {
-            $this->write($data);
-        }
-    }
-
-    public function setPath($path)
-    {
-        $this->path = $path;
+        fwrite($handler, $data);
 
         return $this;
     }
 
-    public function getPath()
+    /**
+     * Store file in the given path
+     *
+     * @param $path
+     * @param null $offset
+     * @param null $length
+     * @return $this
+     */
+    public function saveAs($path, $offset = null, $length = null)
     {
-        return $this->path;
-    }
+        $resource = $this->read($offset, $length);
 
-    public function read($offset = null, $length = null)
-    {
-        $offset = $offset ?? 0;
-        $length = $length ?? filesize($this->getPath());
+        $destinationFile = new File($path);
 
-        $handle = $this->openHandle($this->getPath(), 'r+');
-
-        if ($offset) {
-           fseek($handle, $offset);
-        }
-
-        return fread($handle, $length);
-    }
-
-    public function write($data)
-    {
-        $handle = $this->openHandle($this->getPath(), 'w+', true);
-
-        fwrite($handle, $data);
+        $destinationFile->write($resource, $offset);
 
         return $this;
     }
 
-    public function store($path, $offset = null, $length = null)
+    /**
+     * Open a file in temporary mode.
+     * temporary files will be removed automatically as the script ends
+     *
+     * @return bool|resource
+     */
+    protected function openTemporary()
     {
-        $data = $this->read($offset, $length);
+        $handler = tmpfile();
 
-        $handle = $this->openHandle($path, 'w+');
+        $meta = stream_get_meta_data($handler);
+        $this->setPath($meta['uri']);
 
-        fwrite($handle, $data);
+        array_push($this->handlers, $handler);
 
-        return $this;
-    }
-
-    protected function openHandle($path, $mode, $isTemporary = false)
-    {
-        $this->handle = $isTemporary ? tmpfile() : fopen($path, $mode);
-
-        if ($isTemporary) {
-            $metaDatas = stream_get_meta_data($this->handle);
-
-            $this->setPath($metaDatas['uri']);
-        }
-
-        return $this->handle;
-    }
-
-    protected function closeHandle()
-    {
-        if ($this->handle) {
-            fclose($this->handle);
-        }
-
-        return $this;
-    }
-
-    public function __destruct()
-    {
-        $this->closeHandle();
+        return $handler;
     }
 }

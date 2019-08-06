@@ -2,15 +2,7 @@
 
 namespace Shetabit\Chunky\Contracts;
 
-interface TempFileInterface
+interface TempFileInterface extends FileInterface
 {
-    public function setPath($path);
-
-    public function getPath();
-
-    public function read($offset = null, $length = null);
-
-    public function write($data);
-
-    public function store($path, $offset = null, $length = null);
+    public function saveAs($path, $offset = null, $length = null);
 }
