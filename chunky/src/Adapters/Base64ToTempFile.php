@@ -10,7 +10,7 @@ class Base64ToTempFile extends TempFileAdapterAbstract implements TempFileAdapte
     public function decodeData()
     {
         $encodedData = $this->getEncodedData();
-        $pattern = '/^data:((?:(?!\;).)*)((?:\;[\w=]*[^;])*)\,(.+)$/iu';
+        $pattern = '/^data:((?:\w+\/(?:(?!;).)+)?)((?:;[\w\W]*?[^;])*),(.+)$/iu';
 
         $foundFlag = (bool) preg_match($pattern, $encodedData, $matches);
 
@@ -18,16 +18,16 @@ class Base64ToTempFile extends TempFileAdapterAbstract implements TempFileAdapte
         $meta = $matches[2] ? $this->extractMetas($matches[2]) : [];
         $data = base64_decode($matches[3]);
 
-        return $foundFlag ? ['mime' => $mime, 'meta' => $meta, 'data' => $data] : null;
+        $meta['size'] = $meta['size'] ?? intval(mb_strlen($data) * (4/3) -1); // add file size if not exists
+
+        return $foundFlag ? array_merge(['mime' => $mime, 'data' => $data], $meta) : null;
     }
 
     private function extractMetas($meta)
     {
-        $pattern = '/\;(\w+)[=:]?(\w+)/iu';
+        $pattern = '/\;(\w+)[=:]?([\w\.]*)/iu';
         $foundFlag = preg_match_all($pattern,$meta,$matches);
 
-        dd($matches,$meta);
-
-        return $foundFlag ?? $matches;
+        return $foundFlag ? array_combine($matches[1], $matches[2]) : [];
     }
 }

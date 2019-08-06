@@ -17,21 +17,34 @@ trait CollectNormalFile
         } else if (is_array($inputFiles['tmp_name'])) { // there is an array of files
             foreach ($inputFiles['tmp_name'] as $index => $tmpName) {
                 if ($inputFiles['error'][$index] === UPLOAD_ERR_OK) {
-                    array_push($collectedFiles, $this->generateTempFile($inputFiles['tmp_name'][$index]));
+                    $name = $inputFiles['name'][$index];
+                    $type = $inputFiles['type'][$index];
+                    $size = $inputFiles['size'][$index];
+
+                    array_push($collectedFiles, $this->generateTempFile($name, $type, $size));
                 }
             }
         } else { // there is a single file
             if ($inputFiles['error'] === UPLOAD_ERR_OK) {
-                $tempFile = $this->generateTempFile($inputFiles['tmp_name']);
-                array_push($collectedFiles, $tempFile);
+                $name = $inputFiles['name'];
+                $type = $inputFiles['type'];
+                $size = $inputFiles['size'];
+
+                array_push($collectedFiles, $this->generateTempFile($name, $type, $size));
             }
         }
 
         return $collectedFiles;
     }
 
-    public function generateTempFile($name) : TempFileInterface
+    public function generateTempFile($name, $mime, $size) : TempFileInterface
     {
-        return new TempFile($name);
+        $tempFile = new TempFile;
+
+        $tempFile->name = $name;
+        $tempFile->mime = $mime;
+        $tempFile->size = $size;
+
+        return $tempFile;
     }
 }

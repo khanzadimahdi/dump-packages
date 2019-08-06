@@ -14,9 +14,11 @@ class JsonToTempFile extends TempFileAdapterAbstract implements TempFileAdapterI
         $foundFlag = !empty($jsonObj);
 
         $mime = $jsonObj->mime ?? null;
-        $meta = $jsonObj->meta ?? null;
+        $meta = $jsonObj->meta ?? [];
         $data = base64_decode($jsonObj->data);
 
-        return $foundFlag ? ['mime' => $mime, 'meta' => $meta, 'data' => $data] : null;
+        $meta['size'] = $meta['size'] ?? intval(mb_strlen($data) * (4/3) -1); // add file size if not exists
+
+        return $foundFlag ? array_merge(['mime' => $mime, 'data' => $data], $meta) : null;
     }
 }

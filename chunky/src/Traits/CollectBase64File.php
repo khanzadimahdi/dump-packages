@@ -31,7 +31,7 @@ trait CollectBase64File
 
     public function hasBase64Format($base64String)
     {
-        $pattern = '/^data:((?:(?!\;).)*)((?:\;[\w=]*[^;])*)\,(.+)$/iu';
+        $pattern = '/^data:((?:\w+\/(?:(?!;).)+)?)((?:;[\w\W]*?[^;])*),(.+)$/iu';
 
         return (bool) preg_match($pattern, $base64String);
     }
