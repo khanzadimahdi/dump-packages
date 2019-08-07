@@ -7,6 +7,7 @@
         "upload-manager",
         "chunk upload",
         "chunk resummable upload",
+        "php resume chunk upload",
         "resume upload"
     ],
     "homepage": "https://github.com/shetabit/chunky",
