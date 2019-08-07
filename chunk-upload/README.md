@@ -1,1 +1,0 @@
-# resummable chunk upload manager
